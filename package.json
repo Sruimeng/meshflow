@@ -1,5 +1,5 @@
 {
-  "name": "@sruimeng/DSL",
+  "name": "@sruimeng/mesh-flow",
   "version": "0.0.1",
   "description": "FBX2glTF is a command-line tool for the conversion of 3D model assets on the FBX file format to the glTF file format.",
   "module": "./dist/index.mjs",
@@ -28,22 +28,8 @@
   },
   "browserslist": [],
   "dependencies": {
-    "@react-three/drei": "^9.122.0",
-    "@react-three/fiber": "^8.18.0",
-    "@react-three/postprocessing": "^2.19.1",
-    "@types/three": "^0.177.0",
-    "@vitejs/plugin-react": "^4.6.0",
-    "eslint-config-prettier": "^10.1.5",
-    "eventemitter3": "^5.0.1",
-    "fflate": "^0.8.2",
-    "html2canvas": "^1.4.1",
-    "immer": "^10.1.1",
-    "prettier-plugin-organize-imports": "^4.1.0",
-    "react": "^18.3.1",
-    "react-dom": "^18.3.1",
-    "three": "^0.175.0",
-    "uuid": "^11.1.0",
-    "zustand": "^5.0.3"
+    "three": "^0.177.0",
+    "@types/three": "^0.177.0"
   },
   "devDependencies": {
     "@commitlint/cli": "^19.3.0",
