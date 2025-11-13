@@ -14,7 +14,20 @@
   </style>
 </head>
 <body>
-<div class="container" id="J-container"></div>
+<div class="container" id="J-container">
+  <div style="padding:12px;color:#fff">
+    <input id="J-file" type="file" accept=".fbx,.obj,.stl,.ply,.gltf,.glb,.usd" />
+    <select id="J-format">
+      <option value="glb">glb</option>
+      <option value="obj">obj</option>
+      <option value="stl">stl</option>
+      <option value="ply">ply</option>
+      <option value="usd">usd</option>
+    </select>
+    <button id="J-convert">转换</button>
+    <div id="J-output" style="margin-top:12px"></div>
+  </div>
+ </div>
 
 <script type="module" src="../src/single.ts"></script>
 </body>
