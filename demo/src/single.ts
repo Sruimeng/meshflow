@@ -3,7 +3,11 @@ import { convert, ExportFormat, createAssimp } from '@sruimeng/mesh-flow';
 const dropzone = document.getElementById('J-dropzone') as HTMLDivElement | null;
 const browseBtn = document.getElementById('J-browse') as HTMLButtonElement | null;
 const fileInput = document.getElementById('J-file') as HTMLInputElement | null;
-const formatSelect = document.getElementById('J-format') as HTMLSelectElement | null;
+const nativeSelect = document.getElementById('J-format-native') as HTMLSelectElement | null;
+const combo = document.getElementById('J-format-combobox') as HTMLDivElement | null;
+const comboBtn = document.getElementById('J-format-button') as HTMLButtonElement | null;
+const comboList = document.getElementById('J-format-list') as HTMLDivElement | null;
+const comboValue = document.getElementById('J-format-value') as HTMLSpanElement | null;
 const convertBtn = document.getElementById('J-convert') as HTMLButtonElement | null;
 const outputDiv = document.getElementById('J-output') as HTMLDivElement | null;
 const statusDiv = document.getElementById('J-status') as HTMLDivElement | null;
@@ -37,11 +41,11 @@ async function readFileAsArrayBuffer(file: File): Promise<ArrayBuffer> {
 }
 
 async function handleConvert() {
-  if (!fileInput || !formatSelect || !outputDiv) return;
+  if (!fileInput || !nativeSelect || !outputDiv) return;
   const file = fileInput.files?.[0];
   if (!file) { setStatus('error', '请选择一个模型文件'); return; }
   if (file.size > 200 * 1024 * 1024) { setStatus('error', '文件超过 200MB 限制'); return; }
-  const fmt = formatSelect.value as ExportFormat;
+  const fmt = (nativeSelect.value as ExportFormat);
   setStatus('converting', `Converting to ${fmt}…`);
   if (convertBtn) { convertBtn.disabled = true; convertBtn.textContent = 'Converting…'; }
   try {
@@ -131,3 +135,58 @@ fileInput?.addEventListener('change', () => {
   try { setStatus('loading', 'Loading Assimp module…'); await createAssimp(); setStatus('idle', 'Ready'); }
   catch (e: any) { setStatus('error', `Assimp module init failed: ${e?.message || e}`); }
 })();
+function openCombo() {
+  if (!combo) return;
+  combo.classList.add('is-open');
+  combo.setAttribute('aria-expanded', 'true');
+}
+
+function closeCombo() {
+  if (!combo) return;
+  combo.classList.remove('is-open');
+  combo.setAttribute('aria-expanded', 'false');
+}
+
+comboBtn?.addEventListener('click', (e) => {
+  e.stopPropagation();
+  if (combo?.classList.contains('is-open')) closeCombo(); else openCombo();
+});
+
+comboList?.addEventListener('click', (e) => {
+  const target = e.target as HTMLElement;
+  const opt = target.closest('.format-option') as HTMLElement | null;
+  if (!opt || !nativeSelect || !comboValue) return;
+  const val = opt.getAttribute('data-value') || 'glb';
+  nativeSelect.value = val;
+  comboValue.textContent = val.toUpperCase() === 'USD' ? 'USDZ' : val.toUpperCase();
+  const options = comboList.querySelectorAll('.format-option');
+  options.forEach(el => el.setAttribute('aria-selected', el === opt ? 'true' : 'false'));
+  closeCombo();
+});
+
+document.addEventListener('click', (e) => {
+  if (!combo) return;
+  if (!combo.contains(e.target as Node)) closeCombo();
+});
+
+comboBtn?.addEventListener('keydown', (e) => {
+  if (!comboList || !nativeSelect || !comboValue) return;
+  const options = Array.from(comboList.querySelectorAll('.format-option')) as HTMLElement[];
+  const currentIndex = options.findIndex(el => el.getAttribute('aria-selected') === 'true');
+  if (e.key === 'Enter' || e.key === ' ') {
+    if (combo?.classList.contains('is-open')) closeCombo(); else openCombo();
+    e.preventDefault();
+  } else if (e.key === 'Escape') {
+    closeCombo();
+  } else if (e.key === 'ArrowDown' || e.key === 'ArrowUp') {
+    let next = currentIndex;
+    if (e.key === 'ArrowDown') next = Math.min(options.length - 1, currentIndex + 1);
+    else next = Math.max(0, currentIndex - 1);
+    const opt = options[next];
+    const val = opt.getAttribute('data-value') || 'glb';
+    nativeSelect.value = val;
+    comboValue.textContent = val.toUpperCase() === 'USD' ? 'USDZ' : val.toUpperCase();
+    options.forEach(el => el.setAttribute('aria-selected', el === opt ? 'true' : 'false'));
+    e.preventDefault();
+  }
+});

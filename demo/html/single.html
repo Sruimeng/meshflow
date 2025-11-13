@@ -25,8 +25,19 @@
     .upload-input { position: absolute; width: 1px; height: 1px; padding: 0; margin: -1px; overflow: hidden; clip: rect(0,0,0,0); border: 0; }
     .upload-trigger { display: inline-flex; align-items: center; gap: 8px; padding: 8px 12px; border-radius: 8px; border: 1px solid rgba(255,255,255,0.12); color: #fafafa; cursor: pointer; background: transparent; }
 
-    .format-select { display: inline-flex; align-items: center; gap: 8px; padding: 12px 16px; border-radius: 8px; border: 1px solid rgba(255,255,255,0.12); background: rgba(255,255,255,0.06); color: #fafafa; }
-    .format-select select { appearance: none; outline: none; border: none; background: transparent; color: inherit; font-size: 14px; }
+    .format-select { position: relative; display: inline-flex; align-items: center; height: 44px; border-radius: 8px; border: 1px solid rgba(255,255,255,0.12); background: rgba(255,255,255,0.06); color: #fafafa; }
+    .format-select.is-open { background: rgba(255,255,255,0.16); }
+    .format-select.is-disabled { opacity: .5; pointer-events: none; }
+    .format-button { display: inline-flex; align-items: center; gap: 8px; padding: 0 16px; height: 44px; color: inherit; background: transparent; border: none; cursor: pointer; }
+    .format-button:focus-visible { outline: 2px solid rgba(255,255,255,0.3); outline-offset: 2px; border-radius: 8px; }
+    .format-caret { width: 16px; height: 16px; fill: #fafafa; transition: transform .2s ease; }
+    .format-select.is-open .format-caret { transform: rotate(180deg); }
+    .format-panel { position: absolute; top: calc(100% + 4px); left: 0; right: 0; background: rgba(0,0,0,0.9); border: 1px solid rgba(255,255,255,0.12); border-radius: 8px; box-shadow: 0 8px 24px rgba(0,0,0,0.5); padding: 6px 0; display: none; }
+    .format-select.is-open .format-panel { display: block; }
+    .format-option { height: 36px; display: flex; align-items: center; padding: 0 12px; cursor: pointer; font-size: 14px; }
+    .format-option:hover { background: rgba(255,255,255,0.12); }
+    .format-option[aria-selected="true"] { font-weight: 600; }
+    @media (max-width: 480px) { .format-button { padding: 0 12px; } }
 
     .convert-btn { padding: 14px 28px; border-radius: 100px; background: #fafafa; color: #000; font-weight: 600; border: none; cursor: pointer; }
     .convert-btn[disabled] { opacity: 0.5; cursor: not-allowed; }
@@ -63,10 +74,21 @@
         <input class="upload-input" id="J-file" type="file" accept=".fbx,.obj,.stl,.ply,.gltf,.glb,.usd" />
       </div>
       <div class="status" id="J-status" role="status" aria-live="polite"></div>
-      <div class="format-select">
-        <span>Select Target Format</span>
-        <select id="J-format">
-          <option value="glb">glb</option>
+      <div class="format-select" id="J-format-combobox" role="combobox" aria-expanded="false" aria-controls="J-format-list" aria-haspopup="listbox">
+        <button class="format-button" id="J-format-button" type="button" aria-labelledby="J-format-label">
+          <span id="J-format-label">Select Target Format</span>
+          <span id="J-format-value">GLB</span>
+          <svg class="format-caret" viewBox="0 0 24 24" aria-hidden="true"><path d="M7 10l5 5 5-5z"/></svg>
+        </button>
+        <div class="format-panel" id="J-format-list" role="listbox">
+          <div class="format-option" role="option" data-value="glb" aria-selected="true">GLB</div>
+          <div class="format-option" role="option" data-value="obj">OBJ</div>
+          <div class="format-option" role="option" data-value="stl">STL</div>
+          <div class="format-option" role="option" data-value="ply">PLY</div>
+          <div class="format-option" role="option" data-value="usd">USDZ</div>
+        </div>
+        <select id="J-format-native" hidden>
+          <option value="glb" selected>glb</option>
           <option value="obj">obj</option>
           <option value="stl">stl</option>
           <option value="ply">ply</option>
