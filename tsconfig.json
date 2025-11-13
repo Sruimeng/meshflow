@@ -11,7 +11,10 @@
     "strict": true,
     "noUnusedLocals": true,
     "noUnusedParameters": true,
-    "noFallthroughCasesInSwitch": true
+    "noFallthroughCasesInSwitch": true,
+    "paths": {
+      "@sruimeng/mesh-flow": ["./src/index.ts"]
+    }
   },
   "include": ["src", "demo/src", "demo/main.tsx"],
   "exclude": ["node_modules", "dist"]

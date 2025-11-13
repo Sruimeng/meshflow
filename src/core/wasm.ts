@@ -7,7 +7,7 @@ function resolveAsset(path: string): string {
   const isDev = typeof import.meta.url === 'string' && import.meta.url.includes('/src/');
   if (isDev) {
     // 开发态：源码相对于项目根目录的 wasm 目录
-    const base = new URL('./wasm/', import.meta.url);
+    const base = new URL('../../wasm/', import.meta.url);
     return new URL(path, base).href;
   }
   // 构建后：资产被复制到 dist/wasm 目录，相对于打包入口
@@ -44,6 +44,7 @@ function getScriptCandidates(): string[] {
   if (typeof window !== 'undefined' && window.location) {
     const origin = window.location.origin;
     for (const name of names) {
+      urls.push(`${origin}/src/wasm/${name}`);
       urls.push(`${origin}/wasm/${name}`);
       urls.push(`${origin}/dist/${name}`);
       urls.push(`${origin}/${name}`);
@@ -67,6 +68,7 @@ function getWasmCandidates(): string[] {
   if (typeof window !== 'undefined' && window.location) {
     const origin = window.location.origin;
     for (const name of names) {
+      urls.push(`${origin}/src/wasm/${name}`);
       urls.push(`${origin}/wasm/${name}`);
       urls.push(`${origin}/dist/${name}`);
       urls.push(`${origin}/${name}`);

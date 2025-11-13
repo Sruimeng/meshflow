@@ -1,6 +1,5 @@
 import { convert, ExportFormat } from '@sruimeng/mesh-flow';
 
-const page = document.getElementById('J-page') as HTMLDivElement | null;
 const dropzone = document.getElementById('J-dropzone') as HTMLDivElement | null;
 const browseBtn = document.getElementById('J-browse') as HTMLButtonElement | null;
 const fileInput = document.getElementById('J-file') as HTMLInputElement | null;

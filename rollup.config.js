@@ -20,7 +20,7 @@ export default () => {
         file: pkg.module,
         format: 'es',
         banner,
-        sourcemap: true,
+        sourcemap: false,
       },
       plugins,
     },
