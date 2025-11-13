@@ -32,18 +32,25 @@
     .convert-btn[disabled] { opacity: 0.5; cursor: not-allowed; }
 
     .output { margin-top: 12px; color: #fafafa; }
+
+    .status { margin-top: 8px; min-height: 20px; font-size: 13px; }
+    .status--loading { color: #bdbdbd; display: inline-flex; align-items: center; gap: 8px; }
+    .status--success { color: #e0e0e0; }
+    .status--error { color: #ff6b6b; }
+    .spinner { width: 14px; height: 14px; border-radius: 50%; border: 2px solid rgba(255,255,255,0.2); border-top-color: #e0e0e0; animation: spin 0.8s linear infinite; }
+    @keyframes spin { to { transform: rotate(360deg); } }
   </style>
 </head>
 <body>
 <div class="page" id="J-page">
   <div class="topbar">
     <div class="nav">
-      <span>Tripo AI</span><span class="sep">›</span><span>3D Model Convert</span>
+      <span>3D Model Convert</span>
     </div>
   </div>
   <section class="hero">
     <h1 class="hero-title">1 Click Convert 2D Image or 3D File to Any 3D Format Ready to Go</h1>
-    <p class="hero-desc">Upload your design in any 2D image or 3D format file, by 1 click, Tripo AI 3D converter automatically detects source format and convert to popular 3D format ready to go: further editing in most 3D modeling software, 3D printing, game development, AR/VR and all 3D scenarios, usability guaranteed.</p>
+    <p class="hero-desc">Upload your design in any 2D image or 3D format file, by 1 click, 3D converter automatically detects source format and convert to popular 3D format ready to go: further editing in most 3D modeling software, 3D printing, game development, AR/VR and all 3D scenarios, usability guaranteed.</p>
     <div class="panel">
       <div class="upload-card" id="J-dropzone">
         <div class="upload-inner">
@@ -55,6 +62,7 @@
         </div>
         <input class="upload-input" id="J-file" type="file" accept=".fbx,.obj,.stl,.ply,.gltf,.glb,.usd" />
       </div>
+      <div class="status" id="J-status" role="status" aria-live="polite"></div>
       <div class="format-select">
         <span>Select Target Format</span>
         <select id="J-format">

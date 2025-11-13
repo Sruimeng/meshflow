@@ -1,4 +1,4 @@
-import { convert, ExportFormat } from '@sruimeng/mesh-flow';
+import { convert, ExportFormat, createAssimp } from '@sruimeng/mesh-flow';
 
 const dropzone = document.getElementById('J-dropzone') as HTMLDivElement | null;
 const browseBtn = document.getElementById('J-browse') as HTMLButtonElement | null;
@@ -6,6 +6,26 @@ const fileInput = document.getElementById('J-file') as HTMLInputElement | null;
 const formatSelect = document.getElementById('J-format') as HTMLSelectElement | null;
 const convertBtn = document.getElementById('J-convert') as HTMLButtonElement | null;
 const outputDiv = document.getElementById('J-output') as HTMLDivElement | null;
+const statusDiv = document.getElementById('J-status') as HTMLDivElement | null;
+
+type StatusKind = 'idle' | 'loading' | 'file' | 'converting' | 'success' | 'error';
+
+function setStatus(kind: StatusKind, text: string) {
+  if (!statusDiv) return;
+  statusDiv.classList.remove('status--loading', 'status--success', 'status--error');
+  if (kind === 'loading') {
+    statusDiv.classList.add('status--loading');
+    statusDiv.innerHTML = `<span class="spinner"></span><span>${text}</span>`;
+  } else if (kind === 'success') {
+    statusDiv.classList.add('status--success');
+    statusDiv.textContent = text;
+  } else if (kind === 'error') {
+    statusDiv.classList.add('status--error');
+    statusDiv.textContent = text;
+  } else {
+    statusDiv.textContent = text;
+  }
+}
 
 async function readFileAsArrayBuffer(file: File): Promise<ArrayBuffer> {
   return new Promise((resolve, reject) => {
@@ -19,16 +39,11 @@ async function readFileAsArrayBuffer(file: File): Promise<ArrayBuffer> {
 async function handleConvert() {
   if (!fileInput || !formatSelect || !outputDiv) return;
   const file = fileInput.files?.[0];
-  if (!file) {
-    outputDiv.textContent = '请选择一个模型文件';
-    return;
-  }
-  if (file.size > 200 * 1024 * 1024) {
-    outputDiv.textContent = '文件超过 200MB 限制';
-    return;
-  }
+  if (!file) { setStatus('error', '请选择一个模型文件'); return; }
+  if (file.size > 200 * 1024 * 1024) { setStatus('error', '文件超过 200MB 限制'); return; }
   const fmt = formatSelect.value as ExportFormat;
-  outputDiv.textContent = '转换中...';
+  setStatus('converting', `Converting to ${fmt}…`);
+  if (convertBtn) { convertBtn.disabled = true; convertBtn.textContent = 'Converting…'; }
   try {
     const buf = await readFileAsArrayBuffer(file);
     const data = new Uint8Array(buf);
@@ -44,10 +59,11 @@ async function handleConvert() {
     a.textContent = `下载 ${a.download} (${res.byteLength} 字节)`;
     outputDiv.innerHTML = '';
     outputDiv.appendChild(a);
+    setStatus('success', `Converted: ${a.download} (${res.byteLength} bytes)`);
   } catch (e: any) {
-    outputDiv.textContent = `转换失败: ${e?.message || e}`;
+    setStatus('error', `Failed: ${e?.message || e}`);
     console.error(e);
-  }
+  } finally { if (convertBtn) { convertBtn.disabled = !(fileInput.files && fileInput.files.length > 0); convertBtn.textContent = 'Convert Now'; } }
 }
 
 convertBtn?.addEventListener('click', handleConvert);
@@ -79,7 +95,7 @@ dropzone?.addEventListener('drop', (e: DragEvent) => {
     const dataTransfer = new DataTransfer();
     dataTransfer.items.add(f);
     fileInput.files = dataTransfer.files;
-    outputDiv && (outputDiv.textContent = `已选择文件：${f.name}`);
+    setStatus('file', `File ready: ${f.name} (${(f.size/1024/1024).toFixed(2)} MB)`);
     if (convertBtn) convertBtn.disabled = false;
   }
 });
@@ -96,7 +112,7 @@ document.addEventListener('paste', async (e: ClipboardEvent) => {
         const dt = new DataTransfer();
         dt.items.add(f);
         fileInput.files = dt.files;
-        outputDiv && (outputDiv.textContent = `已粘贴文件：${f.name}`);
+        setStatus('file', `File ready: ${f.name} (${(f.size/1024/1024).toFixed(2)} MB)`);
         if (convertBtn) convertBtn.disabled = false;
         break;
       }
@@ -108,4 +124,10 @@ document.addEventListener('paste', async (e: ClipboardEvent) => {
 if (convertBtn) convertBtn.disabled = !fileInput || !(fileInput.files && fileInput.files.length > 0);
 fileInput?.addEventListener('change', () => {
   if (convertBtn) convertBtn.disabled = !(fileInput.files && fileInput.files.length > 0);
+  const f = fileInput.files?.[0]; if (f) setStatus('file', `File ready: ${f.name} (${(f.size/1024/1024).toFixed(2)} MB)`);
 });
+
+(async () => {
+  try { setStatus('loading', 'Loading Assimp module…'); await createAssimp(); setStatus('idle', 'Ready'); }
+  catch (e: any) { setStatus('error', `Assimp module init failed: ${e?.message || e}`); }
+})();
