@@ -12,7 +12,7 @@ function copyWasmPlugin() {
     name: 'copy-wasm-assets',
     async generateBundle(options) {
       const outDir = options.dir || (typeof options.file === 'string' ? path.dirname(options.file) : 'dist');
-      const srcDir = path.resolve(__dirname, '../wasm');
+      const srcDir = path.resolve(__dirname, '../src/wasm');
       const destDir = path.resolve(outDir, 'wasm');
       try {
         await fs.mkdir(destDir, { recursive: true });

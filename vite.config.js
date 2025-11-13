@@ -26,7 +26,11 @@ export default defineConfig(({ mode }) => {
       host: '0.0.0.0',
       port: 8080,
     },
-    resolve: {},
+    resolve: {
+      alias: {
+        '@sruimeng/mesh-flow': resolve(__dirname, 'src/index.ts'),
+      },
+    },
     plugins: [
       legacy({
         targets: ['iOS >= 9'],
