@@ -1,16 +1,21 @@
-import type { InputSource, ExportFormat, ConvertOptions } from '../types';
+import type { InputSource, ExportFormat, ConvertOptions, AssimpJSModule, AssimpFileList, AssimpConversionResult, AssimpConvertedFile } from '../types';
 import { getAssimpImporter, getAssimpExporter } from './wasm';
 
-type ModuleFS = {
-  writeFile: (path: string, data: Uint8Array) => void;
-  readFile: (path: string) => Uint8Array;
-  unlink: (path: string) => void;
-  mkdir?: (path: string) => void;
-  readdir?: (path: string) => string[];
-};
+// 移除对 WASM FS 的依赖，统一走模块 API
 
 function toUint8Array(data: ArrayBuffer | Uint8Array): Uint8Array {
   return data instanceof Uint8Array ? data : new Uint8Array(data);
+}
+
+type NamedData = { name: string; data: ArrayBuffer | Uint8Array };
+type FilesList = { files: Array<{ name: string; data: ArrayBuffer | Uint8Array }> };
+
+function isNamedData(x: unknown): x is NamedData {
+  return !!x && typeof x === 'object' && 'name' in (x as any) && 'data' in (x as any);
+}
+
+function isFilesList(x: unknown): x is FilesList {
+  return !!x && typeof x === 'object' && 'files' in (x as any);
 }
 
 async function collectInputFiles(input: InputSource): Promise<{ name: string; data: Uint8Array }[]> {
@@ -44,13 +49,11 @@ async function collectInputFiles(input: InputSource): Promise<{ name: string; da
   if (input instanceof ArrayBuffer || input instanceof Uint8Array) {
     return [{ name: 'input.bin', data: toUint8Array(input) }];
   }
-  if ('name' in (input as any) && (input as any).name && (input as any).data) {
-    const i = input as { name: string; data: ArrayBuffer | Uint8Array };
-    return [{ name: i.name, data: toUint8Array(i.data) }];
+  if (isNamedData(input)) {
+    return [{ name: input.name, data: toUint8Array(input.data) }];
   }
-  if ('files' in (input as any)) {
-    const i = input as { files: Array<{ name: string; data: ArrayBuffer | Uint8Array }> };
-    return i.files.map(f => ({ name: f.name, data: toUint8Array(f.data) }));
+  if (isFilesList(input)) {
+    return input.files.map(f => ({ name: f.name, data: toUint8Array(f.data) }));
   }
   throw new Error('Unsupported input type');
 }

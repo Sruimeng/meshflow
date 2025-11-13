@@ -1,7 +1,7 @@
-type AssimpModule = any;
+import type { AssimpFactory, AssimpJSModule, AssimpFactoryOptions } from '../types';
 
-let importerPromise: Promise<AssimpModule> | null = null;
-let exporterPromise: Promise<AssimpModule> | null = null;
+let importerPromise: Promise<AssimpJSModule> | null = null;
+let exporterPromise: Promise<AssimpJSModule> | null = null;
 
 function resolveAsset(path: string): string {
   const isDev = typeof import.meta.url === 'string' && import.meta.url.includes('/src/');
@@ -78,24 +78,24 @@ function getWasmCandidates(): string[] {
 }
 
 async function tryInjectCandidates(urls: string[]): Promise<void> {
-  let lastErr: any;
+  let lastErr: Error | null = null;
   for (const url of urls) {
     try {
       await injectScript(url);
       return;
     } catch (e) {
-      lastErr = e;
+      lastErr = e instanceof Error ? e : new Error(String(e));
     }
   }
-  throw lastErr ?? new Error('Failed to inject assimp script');
+  throw (lastErr || new Error('Failed to inject assimp script'));
 }
 
-async function loadFactoryFor(name: 'assimpjs-all.js' | 'assimpjs-exporter.js'): Promise<(opts?: any) => Promise<AssimpModule>> {
+async function loadFactoryFor(name: 'assimpjs-all.js' | 'assimpjs-exporter.js'): Promise<AssimpFactory> {
   const all = getScriptCandidates();
   const candidates = all.filter(u => u.includes(name));
   await tryInjectCandidates(candidates);
-  const fn = (globalThis as any).assimpjs;
-  if (typeof fn !== 'function') throw new Error('assimpjs factory not available');
+  const fn = (globalThis as { assimpjs?: AssimpFactory }).assimpjs;
+  if (!fn) throw new Error('assimpjs factory not available');
   return fn;
 }
 
@@ -111,16 +111,17 @@ async function fetchFirstAvailable(urls: string[]): Promise<Uint8Array | undefin
   return undefined;
 }
 
-async function instantiate(factory: (opts?: any) => Promise<AssimpModule>, wasmName: string): Promise<AssimpModule> {
+async function instantiate(factory: AssimpFactory, wasmName: string): Promise<AssimpJSModule> {
   const wasmUrls = getWasmCandidates().filter(u => u.includes(wasmName));
   const wasmBinary = await fetchFirstAvailable(wasmUrls);
-  const mod = await factory({ locateFile: (p: string) => resolveAsset(p), wasmBinary });
-  const ready = (mod as any)?.ready;
-  if (ready && typeof (ready as Promise<void>)?.then === 'function') await ready;
+  const opts: AssimpFactoryOptions = { locateFile: (p: string) => resolveAsset(p), wasmBinary };
+  const mod = await factory(opts);
+  const ready = mod?.ready;
+  if (ready && typeof ready.then === 'function') await ready;
   return mod;
 }
 
-export async function getAssimpImporter(): Promise<AssimpModule> {
+export async function getAssimpImporter(): Promise<AssimpJSModule> {
   if (!importerPromise) {
     const factory = await loadFactoryFor('assimpjs-all.js');
     importerPromise = instantiate(factory, 'assimpjs-all.wasm');
@@ -128,7 +129,7 @@ export async function getAssimpImporter(): Promise<AssimpModule> {
   return importerPromise;
 }
 
-export async function getAssimpExporter(): Promise<AssimpModule> {
+export async function getAssimpExporter(): Promise<AssimpJSModule> {
   if (!exporterPromise) {
     const factory = await loadFactoryFor('assimpjs-exporter.js');
     exporterPromise = instantiate(factory, 'assimpjs-exporter.wasm');

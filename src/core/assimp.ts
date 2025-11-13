@@ -3,10 +3,10 @@ import { getAssimpImporter, getAssimpExporter, resetAssimpModule } from './wasm'
 import { convertModel } from './pipeline';
 
 class AssimpImpl implements Assimp {
-  private modulePromise: Promise<any>;
+  private modulePromise: Promise<void>;
 
   constructor() {
-    this.modulePromise = Promise.all([getAssimpImporter(), getAssimpExporter()]);
+    this.modulePromise = Promise.all([getAssimpImporter(), getAssimpExporter()]).then(() => void 0);
   }
 
   async convert(input: InputSource, target: ExportFormat, options?: ConvertOptions): Promise<Uint8Array> {
