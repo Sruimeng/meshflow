@@ -1,12 +1,32 @@
 /* eslint-disable no-undef */
 import legacy from '@vitejs/plugin-legacy';
 import { resolve } from 'path';
+import { promises as fs } from 'fs';
 import { defineConfig } from 'vite';
 import tsconfigPaths from 'vite-tsconfig-paths';
 import { getSWCPlugin } from './scripts/rollup-config-helper';
 
 // eslint-disable-next-line @typescript-eslint/no-unused-vars
 export default defineConfig(({ mode }) => {
+  const copyWasmVite = () => ({
+    name: 'copy-wasm-vite',
+    async closeBundle() {
+      const outDir = resolve(__dirname, 'dist/wasm');
+      const srcDir = resolve(__dirname, 'src/wasm');
+      try {
+        await fs.mkdir(outDir, { recursive: true });
+        const files = await fs.readdir(srcDir);
+        await Promise.all(files.map(async (f) => {
+          await fs.copyFile(resolve(srcDir, f), resolve(outDir, f));
+        }));
+        // eslint-disable-next-line no-console
+        console.log(`[vite] copied wasm assets to: ${outDir}`);
+      } catch (e) {
+        // eslint-disable-next-line no-console
+        console.error(`[vite] failed to copy wasm assets: ${e?.message || e}`);
+      }
+    },
+  });
   return {
     base: './',
     build: {
@@ -39,6 +59,7 @@ export default defineConfig(({ mode }) => {
         target: 'ES6',
       }),
       tsconfigPaths(),
+      copyWasmVite(),
     ],
   };
 });
