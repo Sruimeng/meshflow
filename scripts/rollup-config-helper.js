@@ -12,19 +12,31 @@ function copyWasmPlugin() {
     name: 'copy-wasm-assets',
     async generateBundle(options) {
       const outDir = options.dir || (typeof options.file === 'string' ? path.dirname(options.file) : 'dist');
-      const srcDir = path.resolve(__dirname, '../src/wasm');
       const destDir = path.resolve(outDir, 'wasm');
-      try {
-        await fs.mkdir(destDir, { recursive: true });
-        const files = await fs.readdir(srcDir);
-        await Promise.all(files.map(async (f) => {
-          const from = path.join(srcDir, f);
-          const to = path.join(destDir, f);
-          await fs.copyFile(from, to);
-        }));
-        this.warn(`Copied wasm assets to: ${destDir}`);
-      } catch (e) {
-        this.error(`Failed to copy wasm assets: ${e?.message || e}`);
+      const tryDirs = [
+        path.resolve(__dirname, '../public/wasm'),
+        path.resolve(__dirname, '../src/wasm'),
+        path.resolve(__dirname, '../wasm'),
+      ];
+      await fs.mkdir(destDir, { recursive: true });
+      let copied = false;
+      for (const srcDir of tryDirs) {
+        try {
+          const files = await fs.readdir(srcDir);
+          if (files && files.length) {
+            await Promise.all(files.map(async (f) => {
+              const from = path.join(srcDir, f);
+              const to = path.join(destDir, f);
+              await fs.copyFile(from, to);
+            }));
+            this.warn(`Copied wasm assets from ${srcDir} to: ${destDir}`);
+            copied = true;
+            break;
+          }
+        } catch {}
+      }
+      if (!copied) {
+        this.error('Failed to copy wasm assets: no source directory found');
       }
     },
   };

@@ -46,6 +46,7 @@ async function handleConvert() {
   if (!file) { setStatus('error', '请选择一个模型文件'); return; }
   if (file.size > 200 * 1024 * 1024) { setStatus('error', '文件超过 200MB 限制'); return; }
   const fmt = (nativeSelect.value as ExportFormat);
+  const outExt = fmt === 'usd' ? 'usdz' : fmt;
   setStatus('converting', `Converting to ${fmt}…`);
   if (convertBtn) { convertBtn.disabled = true; convertBtn.textContent = 'Converting…'; }
   try {
@@ -59,7 +60,7 @@ async function handleConvert() {
     const url = URL.createObjectURL(blob);
     const a = document.createElement('a');
     a.href = url;
-    a.download = `${file.name.replace(/\.[^.]+$/, '')}.${fmt}`;
+    a.download = `${file.name.replace(/\.[^.]+$/, '')}.${outExt}`;
     a.textContent = `下载 ${a.download} (${res.byteLength} 字节)`;
     outputDiv.innerHTML = '';
     outputDiv.appendChild(a);

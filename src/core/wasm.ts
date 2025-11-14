@@ -4,8 +4,7 @@ let importerPromise: Promise<AssimpJSModule> | null = null;
 let exporterPromise: Promise<AssimpJSModule> | null = null;
 
 function resolveAsset(path: string): string {
-  const isDev = typeof import.meta.url === 'string' && import.meta.url.includes('/src/');
-  if (isDev && typeof window !== 'undefined') {
+  if (typeof window !== 'undefined' && window.location) {
     return `${window.location.origin}/wasm/${path}`;
   }
   const base = new URL('./wasm/', import.meta.url);
@@ -28,26 +27,24 @@ function injectScript(url: string): Promise<void> {
 }
 
 function getScriptCandidates(): string[] {
-  const isDev = typeof import.meta.url === 'string' && import.meta.url.includes('/src/');
   const names = ['assimpjs-all.js', 'assimpjs-exporter.js'];
-  if (isDev && typeof window !== 'undefined') {
+  if (typeof window !== 'undefined' && window.location) {
     const origin = window.location.origin;
-    return names.map(name => `${origin}/wasm/${name}`);
+    return names.map(n => `${origin}/wasm/${n}`);
   }
-  return names.map(name => {
-    try { return new URL(`./wasm/${name}`, import.meta.url).href; } catch { return `./wasm/${name}`; }
+  return names.map(n => {
+    try { return new URL(`./wasm/${n}`, import.meta.url).href; } catch { return `./wasm/${n}`; }
   });
 }
 
 function getWasmCandidates(): string[] {
-  const isDev = typeof import.meta.url === 'string' && import.meta.url.includes('/src/');
   const names = ['assimpjs-all.wasm', 'assimpjs-exporter.wasm'];
-  if (isDev && typeof window !== 'undefined') {
+  if (typeof window !== 'undefined' && window.location) {
     const origin = window.location.origin;
-    return names.map(name => `${origin}/wasm/${name}`);
+    return names.map(n => `${origin}/wasm/${n}`);
   }
-  return names.map(name => {
-    try { return new URL(`./wasm/${name}`, import.meta.url).href; } catch { return `./wasm/${name}`; }
+  return names.map(n => {
+    try { return new URL(`./wasm/${n}`, import.meta.url).href; } catch { return `./wasm/${n}`; }
   });
 }
 
