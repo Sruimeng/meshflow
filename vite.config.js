@@ -27,8 +27,40 @@ export default defineConfig(({ mode }) => {
       }
     },
   });
+  const ensureWasmDev = () => ({
+    name: 'ensure-wasm-dev',
+    apply: 'serve',
+    async configureServer() {
+      const destDir = resolve(__dirname, 'public/wasm');
+      const tryDirs = [
+        resolve(__dirname, 'public/wasm'),
+        resolve(__dirname, 'src/wasm'),
+        resolve(__dirname, 'wasm'),
+      ];
+      try {
+        await fs.mkdir(destDir, { recursive: true });
+        for (const dir of tryDirs) {
+          try {
+            const files = await fs.readdir(dir);
+            if (files && files.length) {
+              await Promise.all(files.map(async (f) => {
+                await fs.copyFile(resolve(dir, f), resolve(destDir, f));
+              }));
+              // eslint-disable-next-line no-console
+              console.log(`[vite] ensured dev wasm from: ${dir} -> ${destDir}`);
+              break;
+            }
+          } catch {}
+        }
+      } catch (e) {
+        // eslint-disable-next-line no-console
+        console.error(`[vite] failed ensure dev wasm: ${e?.message || e}`);
+      }
+    },
+  });
   return {
     base: './',
+    publicDir: 'public',
     build: {
       rollupOptions: {
         input: {
@@ -60,6 +92,7 @@ export default defineConfig(({ mode }) => {
       }),
       tsconfigPaths(),
       copyWasmVite(),
+      ensureWasmDev(),
     ],
   };
 });

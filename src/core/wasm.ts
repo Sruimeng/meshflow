@@ -5,12 +5,9 @@ let exporterPromise: Promise<AssimpJSModule> | null = null;
 
 function resolveAsset(path: string): string {
   const isDev = typeof import.meta.url === 'string' && import.meta.url.includes('/src/');
-  if (isDev) {
-    // 开发态：源码相对于项目根目录的 wasm 目录
-    const base = new URL('../../wasm/', import.meta.url);
-    return new URL(path, base).href;
+  if (isDev && typeof window !== 'undefined') {
+    return `${window.location.origin}/wasm/${path}`;
   }
-  // 构建后：资产被复制到 dist/wasm 目录，相对于打包入口
   const base = new URL('./wasm/', import.meta.url);
   return new URL(path, base).href;
 }
@@ -31,50 +28,27 @@ function injectScript(url: string): Promise<void> {
 }
 
 function getScriptCandidates(): string[] {
-  const urls: string[] = [];
+  const isDev = typeof import.meta.url === 'string' && import.meta.url.includes('/src/');
   const names = ['assimpjs-all.js', 'assimpjs-exporter.js'];
-  for (const name of names) {
-    // Prefer local /wasm directory in dev and build
-    try { urls.push(new URL(`../../wasm/${name}`, import.meta.url).href); } catch {}
-    try { urls.push(new URL(`./wasm/${name}`, import.meta.url).href); } catch {}
-    // Also try /dist directory as referenced by standalone HTML doc
-    try { urls.push(new URL(`../../dist/${name}`, import.meta.url).href); } catch {}
-    try { urls.push(new URL(`./dist/${name}`, import.meta.url).href); } catch {}
-  }
-  if (typeof window !== 'undefined' && window.location) {
+  if (isDev && typeof window !== 'undefined') {
     const origin = window.location.origin;
-    for (const name of names) {
-      urls.push(`${origin}/src/wasm/${name}`);
-      urls.push(`${origin}/wasm/${name}`);
-      urls.push(`${origin}/dist/${name}`);
-      urls.push(`${origin}/${name}`);
-    }
+    return names.map(name => `${origin}/wasm/${name}`);
   }
-  // 去重保持顺序
-  return Array.from(new Set(urls));
+  return names.map(name => {
+    try { return new URL(`./wasm/${name}`, import.meta.url).href; } catch { return `./wasm/${name}`; }
+  });
 }
 
 function getWasmCandidates(): string[] {
-  const urls: string[] = [];
+  const isDev = typeof import.meta.url === 'string' && import.meta.url.includes('/src/');
   const names = ['assimpjs-all.wasm', 'assimpjs-exporter.wasm'];
-  for (const name of names) {
-    // Prefer local /wasm directory in dev and build
-    try { urls.push(new URL(`../../wasm/${name}`, import.meta.url).href); } catch {}
-    try { urls.push(new URL(`./wasm/${name}`, import.meta.url).href); } catch {}
-    // Also try /dist directory as referenced by standalone HTML doc
-    try { urls.push(new URL(`../../dist/${name}`, import.meta.url).href); } catch {}
-    try { urls.push(new URL(`./dist/${name}`, import.meta.url).href); } catch {}
-  }
-  if (typeof window !== 'undefined' && window.location) {
+  if (isDev && typeof window !== 'undefined') {
     const origin = window.location.origin;
-    for (const name of names) {
-      urls.push(`${origin}/src/wasm/${name}`);
-      urls.push(`${origin}/wasm/${name}`);
-      urls.push(`${origin}/dist/${name}`);
-      urls.push(`${origin}/${name}`);
-    }
+    return names.map(name => `${origin}/wasm/${name}`);
   }
-  return Array.from(new Set(urls));
+  return names.map(name => {
+    try { return new URL(`./wasm/${name}`, import.meta.url).href; } catch { return `./wasm/${name}`; }
+  });
 }
 
 async function tryInjectCandidates(urls: string[]): Promise<void> {
@@ -111,10 +85,8 @@ async function fetchFirstAvailable(urls: string[]): Promise<Uint8Array | undefin
   return undefined;
 }
 
-async function instantiate(factory: AssimpFactory, wasmName: string): Promise<AssimpJSModule> {
-  const wasmUrls = getWasmCandidates().filter(u => u.includes(wasmName));
-  const wasmBinary = await fetchFirstAvailable(wasmUrls);
-  const opts: AssimpFactoryOptions = { locateFile: (p: string) => resolveAsset(p), wasmBinary };
+async function instantiate(factory: AssimpFactory, _wasmName: string): Promise<AssimpJSModule> {
+  const opts: AssimpFactoryOptions = { locateFile: (p: string) => resolveAsset(p) };
   const mod = await factory(opts);
   const ready = mod?.ready;
   if (ready && typeof ready.then === 'function') await ready;
