@@ -68,6 +68,8 @@ function mapFormat(target: ExportFormat, opts?: ConvertOptions): { format: strin
       return { format: 'stl', outExt: 'stl' };
     case 'ply':
       return { format: 'ply', outExt: 'ply' };
+    case 'fbx':
+      return { format: 'fbx', outExt: 'fbx' };
     case 'usd':
       return { format: 'usdz', outExt: 'usdz' };
     default:

@@ -12,6 +12,7 @@ export type ExportFormat =
   | 'obj'
   | 'stl'
   | 'ply'
+  | 'fbx'
   | 'usd';
 export type InputFormat =
   | 'glb'
