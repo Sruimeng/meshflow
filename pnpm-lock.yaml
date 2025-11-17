@@ -7,13 +7,6 @@ settings:
 importers:
 
   .:
-    dependencies:
-      '@types/three':
-        specifier: ^0.177.0
-        version: 0.177.0
-      three:
-        specifier: ^0.177.0
-        version: 0.177.0
     devDependencies:
       '@commitlint/cli':
         specifier: ^19.3.0
@@ -45,6 +38,9 @@ importers:
       '@types/react-dom':
         specifier: ^19.1.2
         version: 19.1.2(@types/react@19.1.2)
+      '@types/three':
+        specifier: ^0.177.0
+        version: 0.177.0
       '@typescript-eslint/eslint-plugin':
         specifier: ^7.10.0
         version: 7.13.0(@typescript-eslint/parser@7.13.0(eslint@8.57.0)(typescript@5.4.5))(eslint@8.57.0)(typescript@5.4.5)
@@ -102,6 +98,9 @@ importers:
       rollup-plugin-swc3:
         specifier: ^0.11.0
         version: 0.11.2(@swc/core@1.6.3(@swc/helpers@0.5.11))(rollup@2.79.1)
+      three:
+        specifier: ^0.177.0
+        version: 0.177.0
       tslib:
         specifier: ^2.6.2
         version: 2.6.2
