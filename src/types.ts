@@ -7,6 +7,11 @@ export type InputSource =
   | { name: string; data: ArrayBuffer | Uint8Array }
   | { files: Array<{ name: string; data: ArrayBuffer | Uint8Array }> };
 export type AssimpJSON = Record<string, unknown>;
+export type AssimpError = {
+  1000: 'Import wasm failed';
+  1001: 'Import model failed';
+  1002: 'Export model failed';
+};
 export type ExportFormat =
   | 'glb'
   | 'obj'
@@ -31,7 +36,12 @@ export type InputFormat =
 }
   
  export interface Assimp {
-  convert(input: InputSource, target: ExportFormat, options?: ConvertOptions): Promise<Uint8Array>;
+  convert(
+    input: InputSource,
+    target: ExportFormat,
+    onError?: () => AssimpError,
+    options?: ConvertOptions
+  ): Promise<Uint8Array | AssimpError>;
   getVersion(): string;
   destroy(): void;
 }

@@ -1,4 +1,4 @@
-import type { InputSource, ExportFormat, ConvertOptions } from '../types';
+import type { InputSource, ExportFormat, ConvertOptions, AssimpError } from '../types';
 import { getAssimpImporter, getAssimpExporter } from './wasm';
 
 function toUint8Array(data: ArrayBuffer | Uint8Array): Uint8Array {
@@ -75,20 +75,38 @@ function mapFormat(target: ExportFormat, opts?: ConvertOptions): { format: strin
   }
 }
 
-async function convertViaModules(files: { name: string; data: Uint8Array }[], target: ExportFormat, options?: ConvertOptions): Promise<Uint8Array> {
-  const importer = await getAssimpImporter();
-  const exporter = await getAssimpExporter();
+async function convertViaModules(
+  files: { name: string; data: Uint8Array }[],
+  target: ExportFormat,
+  onError?: () => AssimpError,
+  options?: ConvertOptions
+): Promise<Uint8Array | AssimpError> {
+  let importer;
+  let exporter;
+  try {
+    importer = await getAssimpImporter();
+    exporter = await getAssimpExporter();
+  } catch {
+    const e = onError ? ({ 1000: onError()[1000] } as AssimpError) : ({ 1000: 'Import wasm failed' } as AssimpError);
+    return e;
+  }
   const listIn = new importer.FileList();
   files.forEach(f => listIn.AddFile(f.name, f.data));
   const glbRes = importer.ConvertFileList(listIn, 'glb2');
-  if (!glbRes || !glbRes.IsSuccess() || glbRes.FileCount() <= 0) throw new Error('Importer failed to produce glb');
+  if (!glbRes || !glbRes.IsSuccess() || glbRes.FileCount() <= 0) {
+    const e = onError ? ({ 1001: onError()[1001] } as AssimpError) : ({ 1001: 'Import model failed' } as AssimpError);
+    return e;
+  }
   const glbFile = glbRes.GetFile(0);
   const glbContent: Uint8Array = glbFile.GetContent();
   const { format, outExt } = mapFormat(target, options);
   const listOut = new exporter.FileList();
   listOut.AddFile('input.glb', glbContent);
   const outRes = exporter.ConvertFileList(listOut, format);
-  if (!outRes || !outRes.IsSuccess() || outRes.FileCount() <= 0) throw new Error('Exporter failed to produce output');
+  if (!outRes || !outRes.IsSuccess() || outRes.FileCount() <= 0) {
+    const e = onError ? ({ 1002: onError()[1002] } as AssimpError) : ({ 1002: 'Export model failed' } as AssimpError);
+    return e;
+  }
   let chosen: Uint8Array | null = null;
   for (let i = 0; i < outRes.FileCount(); i++) {
     const f = outRes.GetFile(i);
@@ -102,10 +120,21 @@ async function convertViaModules(files: { name: string; data: Uint8Array }[], ta
     const f0 = outRes.GetFile(0);
     chosen = f0.GetContent();
   }
-  return chosen;
+  return chosen as Uint8Array;
 }
 
-export async function convertModel(input: InputSource, target: ExportFormat, options?: ConvertOptions): Promise<Uint8Array> {
-  const files = await collectInputFiles(input);
-  return convertViaModules(files, target, options);
+export async function convertModel(
+  input: InputSource,
+  target: ExportFormat,
+  onError?: () => AssimpError,
+  options?: ConvertOptions
+): Promise<Uint8Array | AssimpError> {
+  let files: { name: string; data: Uint8Array }[];
+  try {
+    files = await collectInputFiles(input);
+  } catch {
+    const e = onError ? ({ 1001: onError()[1001] } as AssimpError) : ({ 1001: 'Import model failed' } as AssimpError);
+    return e;
+  }
+  return convertViaModules(files, target, onError, options);
 }
