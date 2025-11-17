@@ -37,17 +37,6 @@ function getScriptCandidates(): string[] {
   });
 }
 
-function getWasmCandidates(): string[] {
-  const names = ['assimpjs-all.wasm', 'assimpjs-exporter.wasm'];
-  if (typeof window !== 'undefined' && window.location) {
-    const origin = window.location.origin;
-    return names.map(n => `${origin}/wasm/${n}`);
-  }
-  return names.map(n => {
-    try { return new URL(`./wasm/${n}`, import.meta.url).href; } catch { return `./wasm/${n}`; }
-  });
-}
-
 async function tryInjectCandidates(urls: string[]): Promise<void> {
   let lastErr: Error | null = null;
   for (const url of urls) {
@@ -68,18 +57,6 @@ async function loadFactoryFor(name: 'assimpjs-all.js' | 'assimpjs-exporter.js'):
   const fn = (globalThis as { assimpjs?: AssimpFactory }).assimpjs;
   if (!fn) throw new Error('assimpjs factory not available');
   return fn;
-}
-
-async function fetchFirstAvailable(urls: string[]): Promise<Uint8Array | undefined> {
-  for (const url of urls) {
-    try {
-      const res = await fetch(url);
-      if (!res.ok) continue;
-      const ab = await res.arrayBuffer();
-      return new Uint8Array(ab);
-    } catch {}
-  }
-  return undefined;
 }
 
 async function instantiate(factory: AssimpFactory, _wasmName: string): Promise<AssimpJSModule> {

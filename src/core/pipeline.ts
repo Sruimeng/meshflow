@@ -1,7 +1,5 @@
-import type { InputSource, ExportFormat, ConvertOptions, AssimpJSModule, AssimpFileList, AssimpConversionResult, AssimpConvertedFile } from '../types';
+import type { InputSource, ExportFormat, ConvertOptions } from '../types';
 import { getAssimpImporter, getAssimpExporter } from './wasm';
-
-// 移除对 WASM FS 的依赖，统一走模块 API
 
 function toUint8Array(data: ArrayBuffer | Uint8Array): Uint8Array {
   return data instanceof Uint8Array ? data : new Uint8Array(data);

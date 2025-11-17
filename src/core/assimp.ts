@@ -2,12 +2,7 @@ import type { Assimp, InputSource, ExportFormat, ConvertOptions } from '../types
 import { getAssimpImporter, getAssimpExporter, resetAssimpModule } from './wasm';
 import { convertModel } from './pipeline';
 
-class AssimpImpl implements Assimp {
-  private modulePromise: Promise<void>;
-
-  constructor() {
-    this.modulePromise = Promise.all([getAssimpImporter(), getAssimpExporter()]).then(() => void 0);
-  }
+export class AssimpImpl implements Assimp {
 
   async convert(input: InputSource, target: ExportFormat, options?: ConvertOptions): Promise<Uint8Array> {
     return convertModel(input, target, options);
@@ -28,4 +23,3 @@ export async function createAssimp(): Promise<Assimp> {
   return new AssimpImpl();
 }
 
-export { AssimpImpl };
