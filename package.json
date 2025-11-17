@@ -1,6 +1,6 @@
 {
   "name": "@sruim/mesh-flow",
-  "version": "0.0.2",
+  "version": "0.0.3",
   "description": "浏览器端 3D 模型格式转换 SDK（Assimp WASM 封装），支持 OBJ/FBX/USDZ/STL/GLB/3MF/PLY/VOX/GLTF 输入与 GLB/OBJ/STL/PLY/USDZ/FBX 导出",
   "module": "./dist/index.mjs",
   "type": "module",
