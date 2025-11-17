@@ -41,8 +41,7 @@
     "check:ts": "tsc -b ./tsconfig.check.json",
     "clean": "rimraf dist",
     "prepare": "husky install",
-    "prepublishOnly": "pnpm build",
-    "publish": "pnpm build && npm publish --ignore-scripts --access public"
+    "prepublishOnly": "pnpm build"
   },
   "browserslist": [],
   "devDependencies": {
