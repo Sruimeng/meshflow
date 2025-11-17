@@ -1,7 +1,7 @@
 {
-  "name": "@sruimeng/mesh-flow",
+  "name": "@sruim/mesh-flow",
   "version": "0.0.1",
-  "description": "FBX2glTF is a command-line tool for the conversion of 3D model assets on the FBX file format to the glTF file format.",
+  "description": "浏览器端 3D 模型格式转换 SDK（Assimp WASM 封装），支持 OBJ/FBX/USDZ/STL/GLB/3MF/PLY/VOX/GLTF 输入与 GLB/OBJ/STL/PLY/USDZ/FBX 导出",
   "module": "./dist/index.mjs",
   "type": "module",
   "files": [
@@ -12,6 +12,23 @@
       "import": "./dist/index.mjs"
     }
   },
+  "keywords": [
+    "3d",
+    "assimp",
+    "wasm",
+    "mesh",
+    "convert",
+    "model",
+    "fbx",
+    "obj",
+    "stl",
+    "ply",
+    "glb",
+    "usdz",
+    "vox",
+    "3mf",
+    "gltf"
+  ],
   "scripts": {
     "dev": "vite",
     "preview": "concurrently \"vite build\" \"sleep 6 && vite preview\"",
