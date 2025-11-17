@@ -52,7 +52,7 @@ async function handleConvert() {
   try {
     const buf = await readFileAsArrayBuffer(file);
     const data = new Uint8Array(buf);
-    const res = await convert({ name: file.name, data }, fmt, { name: file.name.replace(/\.[^.]+$/, '') });
+    const res = await convert(file, fmt, { name: file.name.replace(/\.[^.]+$/, '') });
     // 使用显式的 ArrayBuffer 作为 BlobPart，避免 TS 对 ArrayBufferLike 的严格检查
     const ab = new ArrayBuffer(res.byteLength);
     new Uint8Array(ab).set(res);
